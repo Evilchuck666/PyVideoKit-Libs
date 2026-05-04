@@ -1,0 +1,12 @@
+*
+!*/
+!*.py
+!LICENSE
+!pyproject.toml
+!README.md
+!.gitattributes
+!.gitignore
+.venv/
+.vscode/
+aur/
+build/
