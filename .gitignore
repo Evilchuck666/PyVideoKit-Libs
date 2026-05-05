@@ -1,12 +1,10 @@
 *
 !*/
 !*.py
-!LICENSE
+!.gitignore
 !pyproject.toml
 !README.md
-!.gitattributes
-!.gitignore
+!LICENSE
 .venv/
 .vscode/
-aur/
 build/
