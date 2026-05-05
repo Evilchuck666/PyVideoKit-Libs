@@ -1,4 +1,4 @@
-# 🎥 PyVideoKit-Libs
+# 🎬 PyVideoKit-Libs
 
 ![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
@@ -46,6 +46,56 @@ pip install PyVideoKit-Libs
 ```
 
 Make sure **FFmpeg**, **FFprobe**, and **SoX** are available in your `PATH`.
+
+---
+
+## 🖥️ Desktop Integration
+
+If you also have [PyVideoKit-GUI](https://pypi.org/project/PyVideoKit-GUI/) installed, you can add it to your application launcher. Arch Linux users get this automatically via the AUR package. For all other systems:
+
+**1. Save the icon:**
+
+```bash
+mkdir -p ~/.local/share/icons/hicolor/scalable/apps
+cat > ~/.local/share/icons/hicolor/scalable/apps/pvk-gui.svg << 'EOF'
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <rect x="4" y="14" width="40" height="30" rx="3" fill="#2d3561"/>
+  <rect x="10" y="19" width="28" height="20" rx="2" fill="#1a2038"/>
+  <polygon points="18,21 18,37 33,29" fill="#ff6b6b"/>
+  <rect x="4" y="6" width="40" height="8" rx="2" fill="#ff6b6b"/>
+  <rect x="11" y="6" width="6" height="8" fill="#ffffff"/>
+  <rect x="23" y="6" width="6" height="8" fill="#ffffff"/>
+  <rect x="35" y="6" width="5" height="8" fill="#ffffff"/>
+</svg>
+EOF
+```
+
+**2. Create the `.desktop` entry:**
+
+```bash
+mkdir -p ~/.local/share/applications
+cat > ~/.local/share/applications/pvk-gui.desktop << 'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=PyVideoKit
+GenericName=Video Processing Tool
+Comment=FFmpeg-based video processing GUI
+Exec=pvk-gui
+Icon=pvk-gui
+Categories=AudioVideo;Video;AudioVideoEditing;
+Terminal=false
+Keywords=video;ffmpeg;trim;fade;vhs;youtube;convert;
+EOF
+```
+
+**3. Refresh the icon cache** *(may be required on some desktop environments)*:
+
+```bash
+gtk-update-icon-cache ~/.local/share/icons/hicolor/
+```
+
+PyVideoKit will now appear in your application launcher.
 
 ---
 
