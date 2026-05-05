@@ -11,9 +11,8 @@ def _build_fade_cmd(
     fade_out: float | None,
     total_duration: float,
     output_path: Path,
-    fps: int,
 ) -> list[str]:
-    v_filters = [f"fps={fps}"]
+    v_filters = []
     if fade_in is not None:
         v_filters.append(f"fade=t=in:st=0:d={fade_in:.3f}")
     if fade_out is not None:
@@ -34,7 +33,6 @@ def _build_fade_cmd(
         "-i", str(input_path),
         "-c:v", "ffv1",
         "-pix_fmt", "yuv420p",
-        "-r", str(fps),
         "-vf", ",".join(v_filters),
     ]
     if af_chain:
@@ -49,7 +47,6 @@ def fade_video(
     input_path: Path,
     fade_in: float | None = None,
     fade_out: float | None = None,
-    fps: int = 60,
     output: str | None = None,
     on_progress: Callable[[float], None] | None = None,
 ) -> Path:
@@ -66,6 +63,6 @@ def fade_video(
     output_path = utils.resolve_output_path(
         utils.make_output_path(input_path, suffix="_fade"), output
     )
-    cmd = _build_fade_cmd(input_path, fade_in, fade_out, total_duration, output_path, fps)
+    cmd = _build_fade_cmd(input_path, fade_in, fade_out, total_duration, output_path)
     utils.run_ffmpeg_with_progress(cmd, duration=total_duration, on_progress=on_progress)
     return output_path

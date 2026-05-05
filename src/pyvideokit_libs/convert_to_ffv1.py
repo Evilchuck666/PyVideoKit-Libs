@@ -7,7 +7,7 @@ from . import ffmpeg_utils as utils
 
 def convert_to_ffv1(
     input_path: Path,
-    fps: int = 60,
+    fps: int | None = None,
     output: str | None = None,
     on_progress: Callable[[float], None] | None = None,
 ) -> Path:
@@ -20,7 +20,10 @@ def convert_to_ffv1(
         "-i", str(input_path),
         "-map", "0",
         "-c:v", "ffv1",
-        "-r", str(fps),
+    ]
+    if fps is not None:
+        cmd += ["-r", str(fps)]
+    cmd += [
         "-c:a", "pcm_s16le",
         str(output_path),
     ]

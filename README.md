@@ -156,7 +156,7 @@ out = join_videos([Path("clip1.mkv"), Path("clip2.mkv"), Path("clip3.mkv")])
 
 ---
 
-#### `fade_video(input_path, fade_in=None, fade_out=None, fps=60, output=None, on_progress=None) -> Path`
+#### `fade_video(input_path, fade_in=None, fade_out=None, output=None, on_progress=None) -> Path`
 
 Add fade-in and/or fade-out to an FFV1 video. Output is re-encoded as FFV1 with PCM audio.
 
@@ -176,12 +176,13 @@ out = extract_audio(Path("video.mkv"))
 
 ---
 
-#### `convert_to_ffv1(input_path, fps=60, output=None, on_progress=None) -> Path`
+#### `convert_to_ffv1(input_path, fps=None, output=None, on_progress=None) -> Path`
 
-Convert any video to a lossless FFV1/MKV master. Use this as the first step before applying effects.
+Convert any video to a lossless FFV1/MKV master. Use this as the first step before applying effects. `fps` defaults to `None` (preserve source frame rate); pass an integer to force a specific rate.
 
 ```python
-master = convert_to_ffv1(Path("recording.mp4"), fps=60)
+master = convert_to_ffv1(Path("recording.mp4"))        # preserve source fps
+master = convert_to_ffv1(Path("recording.mp4"), fps=60) # force 60 fps
 ```
 
 ---
