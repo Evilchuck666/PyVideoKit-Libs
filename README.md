@@ -10,10 +10,10 @@ Python library for FFmpeg-based video and audio processing. Provides the core fu
 ## ✨ Features
 
 - 📼 **VHS effect** — retro visual noise, color bleed, and audio degradation
-- ✂️ **Trim** — cut a segment by start/end time with stream copy
+- ✂️ **Trim** — cut a segment by start/end time with stream copy (no re-encoding)
 - 🔗 **Concatenate** — join multiple videos with stream compatibility validation
 - 🎬 **Fade** — fade-in and/or fade-out on an FFV1 master
-- 🔊 **Extract audio** — dump the audio track to uncompressed WAV
+- 🔊 **Extract audio** — dump the audio track to uncompressed WAV (PCM 16-bit)
 - 🎞️ **Convert to FFV1** — create a lossless MKV master for editing
 - 📺 **Prepare for YouTube** — encode to ProRes 422 HQ MOV, upscaled to 4K
 
@@ -31,9 +31,21 @@ No Python package dependencies — the library delegates all heavy lifting to ex
 
 ## 🔧 Installation
 
+### 🏗️ Arch Linux (AUR)
+
 ```bash
-pip install .
+yay -S python-pyvideokit-libs
 ```
+
+FFmpeg, FFprobe, and SoX are installed automatically as pacman dependencies.
+
+### 🐍 Other systems (pip)
+
+```bash
+pip install PyVideoKit-Libs
+```
+
+Make sure **FFmpeg**, **FFprobe**, and **SoX** are available in your `PATH`.
 
 ---
 
