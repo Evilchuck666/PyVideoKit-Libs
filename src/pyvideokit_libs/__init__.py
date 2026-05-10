@@ -24,7 +24,12 @@ from .fade_video import fade_video
 from .prepare_youtube import prepare_youtube
 from .trim_video import trim_video
 
-__version__ = "0.2.0"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("PyVideoKit-Libs")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 __all__ = [
     "FFmpegError",
