@@ -114,7 +114,7 @@ def _step_2_map_inputs(input_path: Path, tmp: TempFiles, duration: float, output
     base_name = input_path.stem
     for ch in ':*?"<>|':
         base_name = base_name.replace(ch, "-")
-    default_path = tmp.vhs.parent / f"{base_name}.mkv"
+    default_path = tmp.vhs.parent / f"{base_name}_vhs.mkv"
     final_path = utils.resolve_output_path(default_path, output)
     cmd = [
         "ffmpeg", "-hide_banner", "-y",

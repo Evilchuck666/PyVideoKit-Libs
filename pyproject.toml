@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyVideoKit-Libs"
-version = "0.4.0"
-description = "Python library for FFmpeg-based video processing"
+version = "0.4.1"
+description = "FFmpeg-based video processing library: trim, concatenate, fade, VHS effect, WAV extraction, lossless FFV1 masters and 4K ProRes exports for YouTube"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
@@ -18,6 +18,13 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = []
+keywords = ["ffmpeg", "video", "video-processing", "ffv1", "prores", "vhs", "youtube", "sox"]
+
+[project.urls]
+Homepage = "https://github.com/Evilchuck666/PyVideoKit-Libs"
+Source = "https://github.com/Evilchuck666/PyVideoKit-Libs"
+Issues = "https://github.com/Evilchuck666/PyVideoKit-Libs/issues"
+Releases = "https://github.com/Evilchuck666/PyVideoKit-Libs/releases"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

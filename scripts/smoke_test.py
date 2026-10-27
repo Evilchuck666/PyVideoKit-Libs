@@ -48,8 +48,9 @@ def main() -> None:
         check("join_videos", pvk.join_videos([master, master]))
         check("fade_video", pvk.fade_video(master, fade_in=0.5, fade_out=0.5), "ffv1")
         check("extract_audio", pvk.extract_audio(master))
-        # Explicit output: the default name equals an .mkv input and would overwrite it.
-        check("apply_vhs_effect", pvk.apply_vhs_effect(master, output=str(Path(tmp) / "vhs.mkv")), "ffv1")
+        vhs = check("apply_vhs_effect", pvk.apply_vhs_effect(master), "ffv1")
+        if vhs == master:
+            sys.exit("FAIL apply_vhs_effect: default output overwrote the input")
         check("prepare_youtube", pvk.prepare_youtube(master), "prores")
 
     print("All smoke tests passed.")

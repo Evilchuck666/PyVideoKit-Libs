@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue)
 ![License](https://img.shields.io/badge/license-GPLv3-green)
 
-Python library for FFmpeg-based video and audio processing. Provides the core functions behind [PyVideoKit-CLI](../PyVideoKit-CLI), and can be used directly in your own Python projects.
+Python library for FFmpeg-based video and audio processing. Provides the core functions behind [PyVideoKit-CLI](https://github.com/Evilchuck666/PyVideoKit-CLI) and [PyVideoKit-GUI](https://github.com/Evilchuck666/PyVideoKit-GUI), and can be used directly in your own Python projects.
 
 ---
 
@@ -126,7 +126,7 @@ All functions accept an optional `on_progress` callback `(pct: float) -> None` f
 
 #### `apply_vhs_effect(input_path, output=None, on_progress=None) -> Path`
 
-Apply a retro VHS visual and audio effect. The input must have an audio stream. Produces a `.mkv` file.
+Apply a retro VHS visual and audio effect. The input must have an audio stream. Produces a `<name>_vhs.mkv` file next to the input.
 
 ```python
 out = apply_vhs_effect(Path("video.mp4"))
