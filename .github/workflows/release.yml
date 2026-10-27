@@ -66,7 +66,7 @@ jobs:
       matrix:
         python: ['3.10', '3.11', '3.12', '3.13', '3.14']
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -76,10 +76,21 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      # The runner's Azure mirror sometimes crawls, so cap each attempt and
+      # fall back to the main Ubuntu archive before retrying.
       - name: Install FFmpeg and SoX
         run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y ffmpeg sox
+          for attempt in 1 2 3; do
+            if timeout 240 sudo apt-get update \
+              && timeout 240 sudo apt-get install --no-install-recommends -y \
+                -o Acquire::Retries=3 -o Acquire::http::Timeout=30 ffmpeg sox; then
+              exit 0
+            fi
+            echo "::warning::apt attempt $attempt failed, switching to archive.ubuntu.com"
+            sudo sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' \
+              /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+          done
+          exit 1
 
       - uses: actions/download-artifact@v8
         with:
