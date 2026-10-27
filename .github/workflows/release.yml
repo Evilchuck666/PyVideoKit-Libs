@@ -78,21 +78,44 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      # The runner's Azure mirror sometimes crawls, so cap each attempt and
-      # fall back to the main Ubuntu archive before retrying.
+      # The runner's Azure mirror sometimes crawls. Keep the downloaded .debs
+      # in the Actions cache so only a cold run depends on the mirror.
+      - name: Restore apt package cache
+        id: apt-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/apt-debs
+          key: apt-ffmpeg-sox-ubuntu-24.04-v1
+
+      # Cap each attempt and, before retrying, point the runner's mirror list
+      # (apt-mirrors.txt, not ubuntu.sources) at the main Ubuntu archive.
       - name: Install FFmpeg and SoX
         run: |
+          if compgen -G ~/apt-debs/'*.deb' > /dev/null; then
+            sudo cp ~/apt-debs/*.deb /var/cache/apt/archives/
+          fi
           for attempt in 1 2 3; do
             if timeout 240 sudo apt-get update \
-              && timeout 240 sudo apt-get install --no-install-recommends -y \
-                -o Acquire::Retries=3 -o Acquire::http::Timeout=30 ffmpeg sox; then
+              && timeout 300 sudo apt-get install --no-install-recommends -y \
+                -o Acquire::Retries=3 -o Acquire::http::Timeout=30 \
+                -o APT::Keep-Downloaded-Packages=true ffmpeg sox; then
+              mkdir -p ~/apt-debs
+              cp /var/cache/apt/archives/*.deb ~/apt-debs/
               exit 0
             fi
             echo "::warning::apt attempt $attempt failed, switching to archive.ubuntu.com"
-            sudo sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' \
-              /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+            sudo sed -i 's|azure\.archive\.ubuntu\.com|archive.ubuntu.com|g' \
+              /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
           done
           exit 1
+
+      - name: Save apt package cache
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: ~/apt-debs
+          key: apt-ffmpeg-sox-ubuntu-24.04-v1
 
       - uses: actions/download-artifact@v8
         with:
