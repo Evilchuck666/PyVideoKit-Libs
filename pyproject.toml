@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyVideoKit-Libs"
-version = "0.4.2"
+version = "0.4.3"
 description = "FFmpeg-based video processing library: trim, concatenate, fade, VHS effect, WAV extraction, lossless FFV1 masters and 4K ProRes exports for YouTube"
 readme = "README.md"
 requires-python = ">=3.10"
