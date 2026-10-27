@@ -3,8 +3,10 @@ name: Build and release
 # Builds the sdist and wheel, checks them with twine, installs the wheel on
 # every supported Python and runs scripts/smoke_test.py against real FFmpeg,
 # FFprobe and SoX. "Run workflow" with a version (e.g. 0.4.0, matching
-# pyproject.toml) also publishes a GitHub release with both packages; leave it
-# empty to only build.
+# pyproject.toml) also publishes a GitHub release with both packages, uploads
+# them to PyPI (Trusted Publishing, environment "pypi") and bumps the
+# pyvideokit split package on the AUR (needs the AUR_SSH_PRIVATE_KEY secret);
+# leave it empty to only build.
 
 on:
   push:
@@ -177,3 +179,75 @@ jobs:
             --title "PyVideoKit-Libs v$VERSION" \
             --generate-notes \
             --latest
+
+  pypi:
+    name: Publish to PyPI
+    needs: release
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/PyVideoKit-Libs/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: PyVideoKit-Libs-dist
+          path: dist
+
+      # No API token: PyPI trusts this workflow file and environment directly.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  aur:
+    name: Update AUR package
+    needs: release
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    env:
+      VERSION: ${{ inputs.version }}
+      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+    steps:
+      - name: Check AUR key
+        run: |
+          if [ -z "$AUR_SSH_PRIVATE_KEY" ]; then
+            echo "::error::Add the AUR_SSH_PRIVATE_KEY secret to update the AUR package."
+            exit 1
+          fi
+
+      - name: Set up SSH and git
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed git openssh
+          install -dm700 ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          # Pinned AUR host keys, see https://aur.archlinux.org
+          cat > ~/.ssh/known_hosts << 'EOF'
+          aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN
+          aur.archlinux.org ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLMiLrP8pVi5BFX2i3vepSUnpedeiewE5XptnUnau+ZoeUOPkpoCgZZuYfpaIQfhhJJI5qgnjJmr4hyJbe/zxow=
+          EOF
+          printf 'Host aur.archlinux.org\n  User aur\n  IdentityFile ~/.ssh/aur\n  IdentitiesOnly yes\n' > ~/.ssh/config
+          git config --global user.name "Evilchuck666"
+          git config --global user.email "carlos.martinez.medina1992@gmail.com"
+
+      # The AUR base "pyvideokit" builds Libs, CLI and GUI from git, so only
+      # pkgver and .SRCINFO change here. makepkg refuses to run as root.
+      - name: Bump pkgver and push
+        run: |
+          set -euo pipefail
+          git clone ssh://aur@aur.archlinux.org/pyvideokit.git aur
+          useradd -m builder
+          chown -R builder aur
+          cd aur
+          sed -i -E "s/^pkgver=.*/pkgver=$VERSION/; s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          su builder -c 'makepkg --printsrcinfo' > .SRCINFO
+          git config --global --add safe.directory "$PWD"
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "AUR package is already at $VERSION."
+            exit 0
+          fi
+          git commit -m "Update to $VERSION"
+          git push origin master
