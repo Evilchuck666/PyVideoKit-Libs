@@ -82,7 +82,7 @@ jobs:
       # in the Actions cache so only a cold run depends on the mirror.
       - name: Restore apt package cache
         id: apt-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/apt-debs
           key: apt-ffmpeg-sox-ubuntu-24.04-v1
@@ -111,7 +111,7 @@ jobs:
 
       - name: Save apt package cache
         if: steps.apt-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
           path: ~/apt-debs
@@ -228,6 +228,9 @@ jobs:
     needs: release
     runs-on: ubuntu-24.04
     container: archlinux:base-devel
+    defaults:
+      run:
+        shell: bash
     env:
       VERSION: ${{ inputs.version }}
       AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -239,19 +242,22 @@ jobs:
             exit 1
           fi
 
+      # Inside a container HOME is /github/home but ssh looks up ~/.ssh from
+      # /etc/passwd (/root), so pass the key and host keys explicitly.
       - name: Set up SSH and git
         run: |
           set -euo pipefail
           pacman -Syu --noconfirm --needed git openssh
-          install -dm700 ~/.ssh
-          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
-          chmod 600 ~/.ssh/aur
+          ssh_dir="$RUNNER_TEMP/aur-ssh"
+          install -dm700 "$ssh_dir"
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > "$ssh_dir/aur"
+          chmod 600 "$ssh_dir/aur"
           # Pinned AUR host keys, see https://aur.archlinux.org
-          cat > ~/.ssh/known_hosts << 'EOF'
+          cat > "$ssh_dir/known_hosts" << 'EOF'
           aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN
           aur.archlinux.org ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLMiLrP8pVi5BFX2i3vepSUnpedeiewE5XptnUnau+ZoeUOPkpoCgZZuYfpaIQfhhJJI5qgnjJmr4hyJbe/zxow=
           EOF
-          printf 'Host aur.archlinux.org\n  User aur\n  IdentityFile ~/.ssh/aur\n  IdentitiesOnly yes\n' > ~/.ssh/config
+          echo "GIT_SSH_COMMAND=ssh -i $ssh_dir/aur -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
           git config --global user.name "Evilchuck666"
           git config --global user.email "carlos.martinez.medina1992@gmail.com"
 
